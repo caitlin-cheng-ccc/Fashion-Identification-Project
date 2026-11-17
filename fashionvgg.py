@@ -40,8 +40,8 @@ def read_records(annotations):
     for image in data["images"]:
         records.append({
             "file_name": image["file_name"],
-            "category_ids": categories_per_image[image["id"]],
-            "attribute_ids": attributes_per_image[image["id"]],
+            "category_ids": categories_per_image[int(image["id"])],
+            "attribute_ids": attributes_per_image[int(image["id"])],
         })
 
     return records, category_to_index, attribute_to_index, category_names, attribute_names
@@ -97,7 +97,6 @@ class VGGClassifier(nn.Module):
         self.features = nn.Sequential(*layers)
         self.pool = nn.AdaptiveAvgPool2d((7, 7))
         self.shared = nn.Sequential(
-            nn.Flatten(),
             nn.Linear(512 * 7 * 7, 512),
             nn.ReLU(True),
             nn.Dropout(dropout),
@@ -164,7 +163,6 @@ def train(args):
         raise ValueError("No training records available after split.")
     train_dataset = FashionDataset(training_records, args.images, category_map, attribute_map, transform=make_transforms(args.image_size, training=True))
     val_dataset = FashionDataset(validation_records, args.images, category_map, attribute_map, transform=make_transforms(args.image_size, training=False))
-    make_transforms(args.image_size, training=True)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
     model = VGGClassifier(num_categories=len(category_names), num_attributes=len(attribute_names), variant=args.variant).to(device)
@@ -208,7 +206,7 @@ def print_top(probabilities, names, top_k, threshold):
             print(f"  {names[index]}: {probability:.4f}")
 
 def predict(args):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = pick_device(args.cpu)
     checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
     category_names = checkpoint["category_names"]
     attribute_names = checkpoint["attribute_names"]
@@ -227,7 +225,7 @@ def predict(args):
     category_probabilities = torch.sigmoid(category_logits)[0]
     attribute_probabilities = torch.sigmoid(attribute_logits)[0]
     print("Category Predictions:")
-    print_top(category_probabilities, category_names, top_k=args.top_k, threshold=args.threshold)
+    print_top(category_probabilities, category_names, top_k=args.top_k, threshold=0.0)
     print("Attribute Predictions:")
     print_top(attribute_probabilities, attribute_names, top_k=args.top_k, threshold=args.threshold)
             
