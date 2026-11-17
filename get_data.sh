@@ -14,14 +14,21 @@ wget -c https://s3.amazonaws.com/ifashionist-dataset/images/train2020.zip -O dat
 echo "Downloading validation images"
 wget -c https://s3.amazonaws.com/ifashionist-dataset/images/val_test2020.zip -O data/val_test2020.zip
 
-# 4. Extract Images into Subfolders
+# 4. Download Labels
+echo "Downloading training labels"
+wget -c https://s3.amazonaws.com/ifashionist-dataset/annotations/instances_attributes_train2020.json -O data/train/instances_attributes_train2020.json
+
+echo "Downloading validation labels"
+wget -c https://s3.amazonaws.com/ifashionist-dataset/annotations/instances_attributes_val2020.json -O data/validate/instances_attributes_val2020.json
+
+# 5. Extract Images into SubfoldersA
 echo "Extracting training images"
 unzip -q data/train2020.zip -d data/train/images
 
 echo "Extracting validation images"
 unzip -q data/val_test2020.zip -d data/validate/images
 
-# 5. Clean up temporary zip archives
+# 6. Clean up temporary zip archives
 rm data/train2020.zip data/val_test2020.zip
 
 echo "Done"
