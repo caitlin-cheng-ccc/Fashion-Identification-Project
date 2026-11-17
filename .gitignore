@@ -1,1 +1,5 @@
+venv/
 data/
+*.pt
+train.log
+__pycache__/
